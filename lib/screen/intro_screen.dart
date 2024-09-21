@@ -1,3 +1,4 @@
+import 'package:chatterbox/screen/auth/mobile_number_screen.dart';
 import 'package:chatterbox/utils/color_resource.dart';
 import 'package:chatterbox/utils/image_resource.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +22,10 @@ class IntroScreen extends StatelessWidget {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(1000)),
           elevation: 0,
           color: ColorResource.primaryColor,
-          onPressed: () {},
+          onPressed: () {
+            Navigator.of(context).pushReplacement(MaterialPageRoute(
+                builder: (context) => const MobileNumberScreen()));
+          },
           child: const Padding(
             padding: EdgeInsets.symmetric(vertical: 14),
             child: Row(
@@ -61,7 +65,10 @@ class IntroScreen extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.black, fontSize: 28),
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w500),
                     ),
                   )
                 ],
