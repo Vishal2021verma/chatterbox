@@ -1,4 +1,5 @@
 import 'package:chatterbox/screen/auth/mobile_number_screen.dart';
+import 'package:chatterbox/screen/set_profile_screen.dart';
 import 'package:chatterbox/utils/color_resource.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
@@ -87,6 +88,8 @@ class _VerifyNumberScreenState extends State<VerifyNumberScreen> {
               focusedBorderColor: ColorResource.primaryColor,
               //runs when every textfield is filled
               onSubmit: (String verificationCode) {
+                Navigator.of(context).pushReplacement(MaterialPageRoute(
+                    builder: (context) => const SetProfileScreen()));
                 // showDialog(
                 //     context: context,
                 //     builder: (context) {
