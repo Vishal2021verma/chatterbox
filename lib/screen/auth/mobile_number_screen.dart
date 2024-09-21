@@ -1,5 +1,6 @@
 import 'package:chatterbox/screen/auth/verify_number_screen.dart';
 import 'package:chatterbox/utils/color_resource.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -12,6 +13,26 @@ class MobileNumberScreen extends StatefulWidget {
 
 class _MobileNumberScreenState extends State<MobileNumberScreen> {
   final TextEditingController _controller = TextEditingController();
+
+  Future<void> sendOtp(Function(String) codeSent) async {
+    FirebaseAuth auth = FirebaseAuth.instance;
+    await auth.verifyPhoneNumber(
+        phoneNumber: "+91${_controller.text}",
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          // Automatically signs in the user when verification is complete
+          await auth.signInWithCredential(credential);
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          print('Verification failed: ${e.message}');
+        },
+        codeSent: (String verificatrionId, int? resendToken) {
+          codeSent(verificatrionId);
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          // Auto retrieval timeout callback
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,10 +55,13 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
           elevation: 0,
           color: ColorResource.primaryColor,
           onPressed: () {
-            Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (context) => VerifyNumberScreen(
-                      mobileNumber: _controller.text,
-                    )));
+            sendOtp((String verifiactionID) {
+              Navigator.of(context).pushReplacement(MaterialPageRoute(
+                  builder: (context) => VerifyNumberScreen(
+                        mobileNumber: _controller.text,
+                        verificationId: verifiactionID,
+                      )));
+            });
           },
           child: const Padding(
             padding: EdgeInsets.symmetric(vertical: 14),
@@ -85,7 +109,17 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                   FilteringTextInputFormatter.digitsOnly,
                   FilteringTextInputFormatter.allow(RegExp(r'^[6-9]\d{0,9}$')),
                 ],
+                onSubmitted: (value) {
+                  sendOtp((String verifiactionID) {
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(
+                        builder: (context) => VerifyNumberScreen(
+                              mobileNumber: _controller.text,
+                              verificationId: verifiactionID,
+                            )));
+                  });
+                },
                 decoration: const InputDecoration(
+                    isCollapsed: true,
                     hintText: "Phone number",
                     hintStyle: TextStyle(
                       color: Colors.black45,

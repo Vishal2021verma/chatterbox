@@ -1,14 +1,19 @@
+import 'dart:developer';
+
 import 'package:chatterbox/screen/auth/mobile_number_screen.dart';
 import 'package:chatterbox/screen/set_profile_screen.dart';
 import 'package:chatterbox/utils/color_resource.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 
 class VerifyNumberScreen extends StatefulWidget {
   final String mobileNumber;
+  final String verificationId;
   const VerifyNumberScreen({
     super.key,
     required this.mobileNumber,
+    required this.verificationId,
   });
 
   @override
@@ -16,6 +21,26 @@ class VerifyNumberScreen extends StatefulWidget {
 }
 
 class _VerifyNumberScreenState extends State<VerifyNumberScreen> {
+  Future<void> verifyOTP(String verificationId, String otpCode) async {
+    FirebaseAuth auth = FirebaseAuth.instance;
+
+    // Create a PhoneAuthCredential with the code
+    PhoneAuthCredential credential = PhoneAuthProvider.credential(
+      verificationId: verificationId,
+      smsCode: otpCode,
+    );
+
+    // Sign in the user with the credential
+    try {
+      await auth.signInWithCredential(credential);
+      log('User signed in successfully');
+      Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const SetProfileScreen()));
+    } catch (e) {
+      log('Failed to sign in: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,6 +101,7 @@ class _VerifyNumberScreenState extends State<VerifyNumberScreen> {
             ),
             OtpTextField(
               cursorColor: ColorResource.primaryColor,
+
               numberOfFields: 6,
 
               borderColor: Color(0xFF512DA8),
@@ -87,9 +113,9 @@ class _VerifyNumberScreenState extends State<VerifyNumberScreen> {
               },
               focusedBorderColor: ColorResource.primaryColor,
               //runs when every textfield is filled
-              onSubmit: (String verificationCode) {
-                Navigator.of(context).pushReplacement(MaterialPageRoute(
-                    builder: (context) => const SetProfileScreen()));
+              onSubmit: (String code) {
+                verifyOTP(widget.verificationId, code);
+
                 // showDialog(
                 //     context: context,
                 //     builder: (context) {
