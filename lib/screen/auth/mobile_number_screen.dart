@@ -1,3 +1,4 @@
+import 'package:chatterbox/screen/auth/verify_number_screen.dart';
 import 'package:chatterbox/utils/color_resource.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,7 +35,9 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
           color: ColorResource.primaryColor,
           onPressed: () {
             Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (context) => const MobileNumberScreen()));
+                builder: (context) => VerifyNumberScreen(
+                      mobileNumber: _controller.text,
+                    )));
           },
           child: const Padding(
             padding: EdgeInsets.symmetric(vertical: 14),
