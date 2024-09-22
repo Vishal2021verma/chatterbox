@@ -203,6 +203,7 @@ class _SetProfileScreenState extends State<SetProfileScreen> {
                       borderSide:
                           BorderSide(color: ColorResource.primaryColor))),
             ),
+            // Text(user!.phoneNumber ?? ''),
           ],
         ),
       ),

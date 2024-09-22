@@ -1,5 +1,5 @@
 import 'package:chatterbox/firebase_options.dart';
-import 'package:chatterbox/screen/intro_screen.dart';
+import 'package:chatterbox/screen/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
@@ -19,14 +19,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'ChatterBox',
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
       navigatorKey: navigatorKey,
-      home: const IntroScreen(),
+      home: const SplashScreen(),
     );
   }
 }
