@@ -1,5 +1,5 @@
+import 'dart:async';
 import 'dart:developer';
-
 import 'package:chatterbox/screen/auth/mobile_number_screen.dart';
 import 'package:chatterbox/screen/set_profile_screen.dart';
 import 'package:chatterbox/utils/color_resource.dart';
@@ -21,6 +21,9 @@ class VerifyNumberScreen extends StatefulWidget {
 }
 
 class _VerifyNumberScreenState extends State<VerifyNumberScreen> {
+  Timer? _timer;
+  
+
   Future<void> verifyOTP(String verificationId, String otpCode) async {
     FirebaseAuth auth = FirebaseAuth.instance;
 

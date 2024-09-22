@@ -18,12 +18,30 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
     FirebaseAuth auth = FirebaseAuth.instance;
     await auth.verifyPhoneNumber(
         phoneNumber: "+91${_controller.text}",
+        timeout: const Duration(seconds: 60),
         verificationCompleted: (PhoneAuthCredential credential) async {
           // Automatically signs in the user when verification is complete
           await auth.signInWithCredential(credential);
         },
         verificationFailed: (FirebaseAuthException e) {
-          print('Verification failed: ${e.message}');
+          showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: const Text("Verification Failed"),
+                  content: const Text(
+                    'Provided phone number failed to verify. Please provide correct phone number.',
+                    style: TextStyle(color: Colors.black54),
+                  ),
+                  actions: [
+                    TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('OK'))
+                  ],
+                );
+              });
         },
         codeSent: (String verificatrionId, int? resendToken) {
           codeSent(verificatrionId);
@@ -31,6 +49,34 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
         codeAutoRetrievalTimeout: (String verificationId) {
           // Auto retrieval timeout callback
         });
+  }
+
+  validateInputAndSendOtp(String value) {
+    if (value.length == 10) {
+      sendOtp((String verifiactionID) {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+            builder: (context) => VerifyNumberScreen(
+                  mobileNumber: _controller.text,
+                  verificationId: verifiactionID,
+                )));
+      });
+    } else {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              // title: Text("Verification Code"),
+              content: const Text('Please provide valid phone number'),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('OK'))
+              ],
+            );
+          });
+    }
   }
 
   @override
@@ -55,13 +101,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
           elevation: 0,
           color: ColorResource.primaryColor,
           onPressed: () {
-            sendOtp((String verifiactionID) {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(
-                  builder: (context) => VerifyNumberScreen(
-                        mobileNumber: _controller.text,
-                        verificationId: verifiactionID,
-                      )));
-            });
+            validateInputAndSendOtp(_controller.text);
           },
           child: const Padding(
             padding: EdgeInsets.symmetric(vertical: 14),
@@ -110,13 +150,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                   FilteringTextInputFormatter.allow(RegExp(r'^[6-9]\d{0,9}$')),
                 ],
                 onSubmitted: (value) {
-                  sendOtp((String verifiactionID) {
-                    Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) => VerifyNumberScreen(
-                              mobileNumber: _controller.text,
-                              verificationId: verifiactionID,
-                            )));
-                  });
+                  validateInputAndSendOtp(value);
                 },
                 decoration: const InputDecoration(
                     isCollapsed: true,
