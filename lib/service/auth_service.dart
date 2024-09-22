@@ -10,4 +10,12 @@ class AuthService {
   User? getUser() {
     return user;
   }
+
+  updateUserProfile(String name, successCallbak, failedCallback) {
+    user!.updateProfile(displayName: name).then((_) {
+      successCallbak();
+    }).catchError((error) {
+      failedCallback();
+    });
+  }
 }

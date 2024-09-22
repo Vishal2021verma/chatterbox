@@ -17,11 +17,11 @@ class _SplashScreenState extends State<SplashScreen> {
 
   navigate() {
     if (_authService.isUserLogedIn() &&
-        _authService.getUser()!.displayName == null) {
+        _authService.getUser()!.displayName!.isEmpty) {
       Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const SetProfileScreen()));
     } else if (_authService.isUserLogedIn() &&
-        _authService.getUser()!.displayName != null) {
+        _authService.getUser()!.displayName!.isNotEmpty) {
       Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const HomeScreen()));
     } else if (!_authService.isUserLogedIn()) {

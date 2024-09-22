@@ -1,3 +1,5 @@
+import 'package:chatterbox/screen/home_screen.dart';
+import 'package:chatterbox/service/auth_service.dart';
 import 'package:chatterbox/utils/color_resource.dart';
 import 'package:flutter/material.dart';
 
@@ -10,6 +12,7 @@ class SetProfileScreen extends StatefulWidget {
 
 class _SetProfileScreenState extends State<SetProfileScreen> {
   final TextEditingController _nameContorller = TextEditingController();
+  AuthService _authService = AuthService();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,6 +25,69 @@ class _SetProfileScreenState extends State<SetProfileScreen> {
               color: ColorResource.primaryColor,
               fontSize: 18,
               fontWeight: FontWeight.w500),
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(left: 24, right: 24, bottom: 16),
+        child: MaterialButton(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(1000)),
+          elevation: 0,
+          color: ColorResource.primaryColor,
+          onPressed: () {
+            if (_nameContorller.text.length < 3) {
+              showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      content: const Text('Please provide valid name'),
+                      actions: [
+                        TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('OK'))
+                      ],
+                    );
+                  });
+            } else {
+              _authService.updateUserProfile(_nameContorller.text.trim(), () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    backgroundColor: Colors.black87,
+                    content: Text(
+                      'Profile updated successfully',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                  ),
+                );
+                Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => HomeScreen()));
+              }, () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    backgroundColor: Colors.black87,
+                    content: Text(
+                      'Failed to update your profile info. Please try again.',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                  ),
+                );
+              });
+            }
+          },
+          child: const Padding(
+            padding: EdgeInsets.symmetric(vertical: 14),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Next",
+                  style: TextStyle(color: Colors.white),
+                )
+              ],
+            ),
+          ),
         ),
       ),
       body: SingleChildScrollView(
