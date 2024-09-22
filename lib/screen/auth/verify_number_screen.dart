@@ -1,19 +1,20 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:chatterbox/screen/auth/mobile_number_screen.dart';
 import 'package:chatterbox/screen/set_profile_screen.dart';
+import 'package:chatterbox/service/otp_service.dart';
 import 'package:chatterbox/utils/color_resource.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 
 class VerifyNumberScreen extends StatefulWidget {
   final String mobileNumber;
   final String verificationId;
+  final int? resendToken;
   const VerifyNumberScreen({
     super.key,
     required this.mobileNumber,
     required this.verificationId,
+    required this.resendToken,
   });
 
   @override
@@ -22,26 +23,64 @@ class VerifyNumberScreen extends StatefulWidget {
 
 class _VerifyNumberScreenState extends State<VerifyNumberScreen> {
   Timer? _timer;
-  
+  int _remainingTime = 60;
+  int attempts = 1;
+  OtpService _otpService = OtpService();
+  bool clearText = false;
 
-  Future<void> verifyOTP(String verificationId, String otpCode) async {
-    FirebaseAuth auth = FirebaseAuth.instance;
-
-    // Create a PhoneAuthCredential with the code
-    PhoneAuthCredential credential = PhoneAuthProvider.credential(
-      verificationId: verificationId,
-      smsCode: otpCode,
-    );
-
-    // Sign in the user with the credential
-    try {
-      await auth.signInWithCredential(credential);
-      log('User signed in successfully');
-      Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const SetProfileScreen()));
-    } catch (e) {
-      log('Failed to sign in: $e');
+  startTimer() {
+    if (attempts < 3) {
+      _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (_remainingTime > 0) {
+          setState(() {
+            _remainingTime--;
+          });
+        } else {
+          _timer!.cancel();
+          setState(() {});
+        }
+      });
+      attempts = attempts + 1;
+      setState(() {});
+    } else {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              // title: Text("Verification Code"),
+              content: const Text(
+                  'You have reached the maximum limit for resending OTPs. Please wait for some time before trying again'),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pushReplacement(MaterialPageRoute(
+                          builder: (context) => const MobileNumberScreen()));
+                    },
+                    child: const Text('OK'))
+              ],
+            );
+          });
     }
+  }
+
+  resartTimer() {
+    _timer!.cancel();
+    setState(() {
+      _remainingTime = 60;
+    });
+    startTimer();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer!.cancel();
+    super.dispose();
   }
 
   @override
@@ -104,30 +143,42 @@ class _VerifyNumberScreenState extends State<VerifyNumberScreen> {
             ),
             OtpTextField(
               cursorColor: ColorResource.primaryColor,
-
               numberOfFields: 6,
-
-              borderColor: Color(0xFF512DA8),
-              //set to true to show as box or false to show as dash
+              borderColor: const Color(0xFF512DA8),
               showFieldAsBox: false,
-              //runs when a code is typed in
+              clearText: clearText,
               onCodeChanged: (String code) {
-                //handle validation or checks here
+                clearText = false;
+                setState(() {});
               },
               focusedBorderColor: ColorResource.primaryColor,
-              //runs when every textfield is filled
               onSubmit: (String code) {
-                verifyOTP(widget.verificationId, code);
-
-                // showDialog(
-                //     context: context,
-                //     builder: (context) {
-                //       return AlertDialog(
-                //         title: Text("Verification Code"),
-                //         content: Text('Code entered is $verificationCode'),
-                //       );
-                //     });
-              }, // end onSubmit
+                _otpService.verifyOTP(widget.verificationId, code, () {
+                  Navigator.of(context).pushReplacement(MaterialPageRoute(
+                      builder: (context) => const SetProfileScreen()));
+                }, () {
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text("Verification Failed"),
+                          content: const Text(
+                            'Incorrect OTP entered. Please try again.',
+                            style: TextStyle(color: Colors.black54),
+                          ),
+                          actions: [
+                            TextButton(
+                                onPressed: () {
+                                  clearText = true;
+                                  setState(() {});
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('OK'))
+                          ],
+                        );
+                      });
+                });
+              },
             ),
             const SizedBox(
               height: 60,
@@ -141,22 +192,53 @@ class _VerifyNumberScreenState extends State<VerifyNumberScreen> {
               ),
             ),
             const SizedBox(
-              height: 24,
+              height: 16,
             ),
-            InkWell(
-              onTap: () {
-                Navigator.of(context).pushReplacement(MaterialPageRoute(
-                    builder: (context) => const MobileNumberScreen()));
-              },
-              child: const Text(
-                "Didn't receive code?",
-                style: TextStyle(
-                  height: 2,
-                  color: ColorResource.primaryColor,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
+            (attempts == 3 && _remainingTime == 0)
+                ? InkWell(
+                    onTap: () {
+                      Navigator.of(context).pushReplacement(MaterialPageRoute(
+                          builder: (context) => const MobileNumberScreen()));
+                    },
+                    child: const Text(
+                      "Try again!",
+                      style: TextStyle(
+                        height: 2,
+                        color: ColorResource.primaryColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  )
+                : InkWell(
+                    onTap: _remainingTime == 0
+                        ? () {
+                            _otpService.resendOtp(
+                                widget.mobileNumber, widget.resendToken ?? 0,
+                                (String verifiactionID, int? resendToken) {
+                              resartTimer();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  backgroundColor: Colors.black87,
+                                  content: Text(
+                                    'Otp send successfully.',
+                                    style: TextStyle(color: Colors.white70),
+                                  ),
+                                ),
+                              );
+                            });
+                          }
+                        : null,
+                    child: Text(
+                      (_remainingTime != 0)
+                          ? '$_remainingTime seconds'
+                          : "Didn't receive code?",
+                      style: const TextStyle(
+                        height: 2,
+                        color: ColorResource.primaryColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
           ],
         ),
       ),

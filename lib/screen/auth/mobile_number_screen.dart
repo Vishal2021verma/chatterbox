@@ -1,63 +1,26 @@
 import 'package:chatterbox/screen/auth/verify_number_screen.dart';
+import 'package:chatterbox/service/otp_service.dart';
 import 'package:chatterbox/utils/color_resource.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class MobileNumberScreen extends StatefulWidget {
   const MobileNumberScreen({super.key});
-
   @override
   State<MobileNumberScreen> createState() => _MobileNumberScreenState();
 }
 
 class _MobileNumberScreenState extends State<MobileNumberScreen> {
   final TextEditingController _controller = TextEditingController();
-
-  Future<void> sendOtp(Function(String) codeSent) async {
-    FirebaseAuth auth = FirebaseAuth.instance;
-    await auth.verifyPhoneNumber(
-        phoneNumber: "+91${_controller.text}",
-        timeout: const Duration(seconds: 60),
-        verificationCompleted: (PhoneAuthCredential credential) async {
-          // Automatically signs in the user when verification is complete
-          await auth.signInWithCredential(credential);
-        },
-        verificationFailed: (FirebaseAuthException e) {
-          showDialog(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  title: const Text("Verification Failed"),
-                  content: const Text(
-                    'Provided phone number failed to verify. Please provide correct phone number.',
-                    style: TextStyle(color: Colors.black54),
-                  ),
-                  actions: [
-                    TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text('OK'))
-                  ],
-                );
-              });
-        },
-        codeSent: (String verificatrionId, int? resendToken) {
-          codeSent(verificatrionId);
-        },
-        codeAutoRetrievalTimeout: (String verificationId) {
-          // Auto retrieval timeout callback
-        });
-  }
+  final OtpService _otpService = OtpService();
 
   validateInputAndSendOtp(String value) {
     if (value.length == 10) {
-      sendOtp((String verifiactionID) {
+      _otpService.sendOtp(value, (String verifiactionID, int? resendToken) {
         Navigator.of(context).pushReplacement(MaterialPageRoute(
             builder: (context) => VerifyNumberScreen(
                   mobileNumber: _controller.text,
-                  verificationId: verifiactionID,
+                  verificationId: verifiactionID, resendToken: resendToken,
                 )));
       });
     } else {
@@ -65,7 +28,6 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
           context: context,
           builder: (context) {
             return AlertDialog(
-              // title: Text("Verification Code"),
               content: const Text('Please provide valid phone number'),
               actions: [
                 TextButton(
@@ -101,6 +63,12 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
           elevation: 0,
           color: ColorResource.primaryColor,
           onPressed: () {
+            // Navigator.of(context).pushReplacement(MaterialPageRoute(
+            //     builder: (context) => VerifyNumberScreen(
+            //           mobileNumber: _controller.text,
+            //           verificationId: "",
+            //           resendToken: 0,
+            //         )));
             validateInputAndSendOtp(_controller.text);
           },
           child: const Padding(
