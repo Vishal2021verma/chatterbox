@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:chatterbox/screen/home_screen.dart';
 import 'package:chatterbox/service/auth_service.dart';
+import 'package:chatterbox/service/image_picker_service.dart';
 import 'package:chatterbox/utils/color_resource.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class SetProfileScreen extends StatefulWidget {
   const SetProfileScreen({super.key});
@@ -12,7 +16,10 @@ class SetProfileScreen extends StatefulWidget {
 
 class _SetProfileScreenState extends State<SetProfileScreen> {
   final TextEditingController _nameContorller = TextEditingController();
+  ImagePickerService _imagePickerService = ImagePickerService();
   AuthService _authService = AuthService();
+  XFile? _profileImage;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,8 +68,8 @@ class _SetProfileScreenState extends State<SetProfileScreen> {
                     ),
                   ),
                 );
-                Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => HomeScreen()));
+                Navigator.of(context).pushReplacement(MaterialPageRoute(
+                    builder: (context) => const HomeScreen()));
               }, () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -167,7 +174,15 @@ class _SetProfileScreenState extends State<SetProfileScreen> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 InkWell(
-                                    onTap: () {},
+                                    onTap: () async {
+                                      XFile? image = await _imagePickerService
+                                          .getImageFromCamera();
+                                      if (image != null) {
+                                        _profileImage = image;
+                                        setState(() {});
+                                      }
+                                      Navigator.pop(context);
+                                    },
                                     child: const Padding(
                                       padding:
                                           EdgeInsets.symmetric(horizontal: 20),
@@ -191,7 +206,26 @@ class _SetProfileScreenState extends State<SetProfileScreen> {
                                       ),
                                     )),
                                 InkWell(
-                                    onTap: () {},
+                                    onTap: () async {
+                                      //  else {
+                                      //   showDialog(
+                                      //       context: context,
+                                      //       builder: (context) {
+                                      //         return AlertDialog(
+                                      //           content: const Text(
+                                      //               'An error occurred while picking the image.'),
+                                      //           actions: [
+                                      //             TextButton(
+                                      //                 onPressed: () {
+                                      //                   Navigator.of(context)
+                                      //                       .pop();
+                                      //                 },
+                                      //                 child: const Text('OK'))
+                                      //           ],
+                                      //         );
+                                      //       });
+                                      // }
+                                    },
                                     child: const Padding(
                                       padding:
                                           EdgeInsets.symmetric(horizontal: 20),
@@ -226,16 +260,22 @@ class _SetProfileScreenState extends State<SetProfileScreen> {
                   },
                 );
               },
-              child: Container(
-                height: 120,
-                width: 120,
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                    color: Color.fromARGB(17, 0, 0, 0), shape: BoxShape.circle),
-                child: const Icon(
-                  Icons.add_a_photo_rounded,
-                  color: Colors.grey,
-                  size: 55,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10000),
+                child: Container(
+                  height: 120,
+                  width: 120,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                      color: Color.fromARGB(17, 0, 0, 0),
+                      shape: BoxShape.circle),
+                  child: _profileImage != null
+                      ? Image.file(File(_profileImage!.path))
+                      : const Icon(
+                          Icons.add_a_photo_rounded,
+                          color: Colors.grey,
+                          size: 55,
+                        ),
                 ),
               ),
             ),
