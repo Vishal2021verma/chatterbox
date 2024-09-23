@@ -11,8 +11,23 @@ class AuthService {
     return user;
   }
 
-  updateUserProfile(String name, successCallbak, failedCallback) {
+  updateUserProfileName(String name, successCallbak, failedCallback) {
     user!.updateProfile(displayName: name).then((_) {
+      successCallbak();
+    }).catchError((error) {
+      failedCallback();
+    });
+  }
+  updateUserProfileImage(String photoUrl, successCallbak, failedCallback) {
+    user!.updateProfile(photoURL: photoUrl).then((_) {
+      successCallbak();
+    }).catchError((error) {
+      failedCallback();
+    });
+  }
+
+  updateUserProfileInfo(String name, String photoUrl, successCallbak, failedCallback) {
+    user!.updateProfile(displayName: name, photoURL: photoUrl).then((_) {
       successCallbak();
     }).catchError((error) {
       failedCallback();

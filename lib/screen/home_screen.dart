@@ -12,13 +12,27 @@ class _HomeScreenState extends State<HomeScreen> {
   final AuthService _authService = AuthService();
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
+    return Scaffold(
       body: Center(
-        child: Text(
-          "Welcome ${_authService.user!.displayName ?? ""}",
-          style: const TextStyle(fontSize: 30),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10000),
+              child: Image.network(
+                _authService.user!.photoURL ?? "",
+                width: 60,
+                height: 60,
+              ),
+            ),
+            Text(
+              "Welcome ${_authService.user!.displayName ?? ""}",
+              style: const TextStyle(fontSize: 30),
+            ),
+          ],
         ),
       ),
     );
   }
 }
+

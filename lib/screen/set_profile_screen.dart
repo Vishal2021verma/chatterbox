@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:chatterbox/screen/home_screen.dart';
 import 'package:chatterbox/service/auth_service.dart';
+import 'package:chatterbox/service/fire_store_service.dart';
 import 'package:chatterbox/service/image_picker_service.dart';
 import 'package:chatterbox/utils/color_resource.dart';
 import 'package:flutter/material.dart';
@@ -16,9 +17,46 @@ class SetProfileScreen extends StatefulWidget {
 
 class _SetProfileScreenState extends State<SetProfileScreen> {
   final TextEditingController _nameContorller = TextEditingController();
-  ImagePickerService _imagePickerService = ImagePickerService();
-  AuthService _authService = AuthService();
+  final ImagePickerService _imagePickerService = ImagePickerService();
+  final FireStoreService _fireStoreService = FireStoreService();
+  final AuthService _authService = AuthService();
   XFile? _profileImage;
+
+  uploadProfileInfo(String name) async {
+    if (_profileImage == null) {
+      _authService.updateUserProfileName(name, () {
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const HomeScreen()));
+      }, () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.black87,
+            content: Text(
+              'Failed to update your profile info. Please try again.',
+              style: TextStyle(color: Colors.white70),
+            ),
+          ),
+        );
+      });
+    } else {
+      String? photoUrl = await _fireStoreService
+          .uploadImageToFirebase(File(_profileImage!.path));
+      _authService.updateUserProfileInfo(name, photoUrl ?? "", () {
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const HomeScreen()));
+      }, () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.black87,
+            content: Text(
+              'Failed to update your profile info. Please try again.',
+              style: TextStyle(color: Colors.white70),
+            ),
+          ),
+        );
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,29 +96,7 @@ class _SetProfileScreenState extends State<SetProfileScreen> {
                     );
                   });
             } else {
-              _authService.updateUserProfile(_nameContorller.text.trim(), () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    backgroundColor: Colors.black87,
-                    content: Text(
-                      'Profile updated successfully',
-                      style: TextStyle(color: Colors.white70),
-                    ),
-                  ),
-                );
-                Navigator.of(context).pushReplacement(MaterialPageRoute(
-                    builder: (context) => const HomeScreen()));
-              }, () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    backgroundColor: Colors.black87,
-                    content: Text(
-                      'Failed to update your profile info. Please try again.',
-                      style: TextStyle(color: Colors.white70),
-                    ),
-                  ),
-                );
-              });
+              uploadProfileInfo(_nameContorller.text.trim());
             }
           },
           child: const Padding(
@@ -207,24 +223,13 @@ class _SetProfileScreenState extends State<SetProfileScreen> {
                                     )),
                                 InkWell(
                                     onTap: () async {
-                                      //  else {
-                                      //   showDialog(
-                                      //       context: context,
-                                      //       builder: (context) {
-                                      //         return AlertDialog(
-                                      //           content: const Text(
-                                      //               'An error occurred while picking the image.'),
-                                      //           actions: [
-                                      //             TextButton(
-                                      //                 onPressed: () {
-                                      //                   Navigator.of(context)
-                                      //                       .pop();
-                                      //                 },
-                                      //                 child: const Text('OK'))
-                                      //           ],
-                                      //         );
-                                      //       });
-                                      // }
+                                      XFile? image = await _imagePickerService
+                                          .getImageFromGallry();
+                                      if (image != null) {
+                                        _profileImage = image;
+                                        setState(() {});
+                                      }
+                                      Navigator.pop(context);
                                     },
                                     child: const Padding(
                                       padding:
