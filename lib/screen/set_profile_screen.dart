@@ -1,5 +1,5 @@
+import 'dart:developer';
 import 'dart:io';
-
 import 'package:chatterbox/screen/home_screen.dart';
 import 'package:chatterbox/service/auth_service.dart';
 import 'package:chatterbox/service/fire_store_service.dart';
@@ -40,7 +40,7 @@ class _SetProfileScreenState extends State<SetProfileScreen> {
       });
     } else {
       String? photoUrl = await _fireStoreService
-          .uploadImageToFirebase(File(_profileImage!.path));
+          .uploadImageToFirebase(_profileImage!);
       _authService.updateUserProfileInfo(name, photoUrl ?? "", () {
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const HomeScreen()));
@@ -227,6 +227,9 @@ class _SetProfileScreenState extends State<SetProfileScreen> {
                                           .getImageFromGallry();
                                       if (image != null) {
                                         _profileImage = image;
+                                        log(_profileImage!.path);
+                                        log(_profileImage!.name);
+                                        // log(_profileImage.)
                                         setState(() {});
                                       }
                                       Navigator.pop(context);

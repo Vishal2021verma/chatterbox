@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen> {
         _authService.getUser()!.displayName!.isEmpty) {
       Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const SetProfileScreen()));
-    } else if (_authService.getUser()!.photoURL == null) {
+    } else if (_authService.isUserLogedIn() && _authService.getUser()!.photoURL == null) {
       Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const SetProfileScreen()));
     } else if (_authService.isUserLogedIn() &&
