@@ -8,7 +8,8 @@ class OtpService {
   late String _verificationId;
   int? _resendToken; // Store the resend token
 
-  Future<void> sendOtp(String value, Function(String, int?) codeSent) async {
+  Future<void> sendOtp(
+      String value, Function(String, int?) codeSent, failedCallback) async {
     await _auth.verifyPhoneNumber(
         phoneNumber: "+91$value",
         timeout: const Duration(seconds: 120),
@@ -17,13 +18,14 @@ class OtpService {
           await _auth.signInWithCredential(credential);
         },
         verificationFailed: (FirebaseAuthException e) {
+          failedCallback();
           showDialog(
               context: navigatorKey.currentState!.context,
               builder: (context) {
                 return AlertDialog(
                   title: const Text("Verification Failed"),
                   content: const Text(
-                    'Provided phone number failed to verify. Please provide correct phone number.',
+                    'Provided phone number failed to verify.',
                     style: TextStyle(color: Colors.black54),
                   ),
                   actions: [
@@ -99,7 +101,6 @@ class OtpService {
       successCallback();
     } catch (e) {
       errorCallback();
-     
     }
   }
 }

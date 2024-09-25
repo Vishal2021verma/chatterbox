@@ -1,8 +1,10 @@
+import 'package:chatterbox/provider/loading_provider.dart';
 import 'package:chatterbox/screen/auth/verify_number_screen.dart';
 import 'package:chatterbox/service/otp_service.dart';
 import 'package:chatterbox/utils/color_resource.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 class MobileNumberScreen extends StatefulWidget {
   const MobileNumberScreen({super.key});
@@ -14,14 +16,20 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
   final TextEditingController _controller = TextEditingController();
   final OtpService _otpService = OtpService();
 
-  validateInputAndSendOtp(String value) {
+  validateInputAndSendOtp(String value) async {
     if (value.length == 10) {
+      SystemChannels.textInput.invokeMethod('TextInput.hide');
+      Provider.of<LoadingProvider>(context, listen: false).isLoading = true;
       _otpService.sendOtp(value, (String verifiactionID, int? resendToken) {
+        Provider.of<LoadingProvider>(context, listen: false).isLoading = false;
         Navigator.of(context).pushReplacement(MaterialPageRoute(
             builder: (context) => VerifyNumberScreen(
                   mobileNumber: _controller.text,
-                  verificationId: verifiactionID, resendToken: resendToken,
+                  verificationId: verifiactionID,
+                  resendToken: resendToken,
                 )));
+      }, () {
+        Provider.of<LoadingProvider>(context, listen: false).isLoading = false;
       });
     } else {
       showDialog(

@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'package:chatterbox/provider/loading_provider.dart';
 import 'package:chatterbox/screen/auth/mobile_number_screen.dart';
 import 'package:chatterbox/screen/set_profile_screen.dart';
 import 'package:chatterbox/service/otp_service.dart';
 import 'package:chatterbox/utils/color_resource.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
+import 'package:provider/provider.dart';
 
 class VerifyNumberScreen extends StatefulWidget {
   final String mobileNumber;
@@ -153,10 +155,18 @@ class _VerifyNumberScreenState extends State<VerifyNumberScreen> {
               },
               focusedBorderColor: ColorResource.primaryColor,
               onSubmit: (String code) {
+                Provider.of<LoadingProvider>(context, listen: false).isLoading =
+                    true;
                 _otpService.verifyOTP(widget.verificationId, code, () {
+                  Provider.of<LoadingProvider>(context, listen: false)
+                      .isLoading = false;
+
                   Navigator.of(context).pushReplacement(MaterialPageRoute(
                       builder: (context) => const SetProfileScreen()));
                 }, () {
+                  Provider.of<LoadingProvider>(context, listen: false)
+                      .isLoading = false;
+
                   showDialog(
                       context: context,
                       builder: (context) {

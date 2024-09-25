@@ -1,12 +1,15 @@
 import 'dart:developer';
 import 'dart:io';
+import 'package:chatterbox/provider/loading_provider.dart';
 import 'package:chatterbox/screen/home_screen.dart';
 import 'package:chatterbox/service/auth_service.dart';
 import 'package:chatterbox/service/fire_store_service.dart';
 import 'package:chatterbox/service/image_picker_service.dart';
 import 'package:chatterbox/utils/color_resource.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 class SetProfileScreen extends StatefulWidget {
   const SetProfileScreen({super.key});
@@ -23,11 +26,19 @@ class _SetProfileScreenState extends State<SetProfileScreen> {
   XFile? _profileImage;
 
   uploadProfileInfo(String name) async {
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+
+    Provider.of<LoadingProvider>(context, listen: false).isLoading = true;
+
     if (_profileImage == null) {
       _authService.updateUserProfileName(name, () {
+        Provider.of<LoadingProvider>(context, listen: false).isLoading = false;
+
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const HomeScreen()));
       }, () {
+        Provider.of<LoadingProvider>(context, listen: false).isLoading = false;
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             backgroundColor: Colors.black87,
@@ -39,12 +50,16 @@ class _SetProfileScreenState extends State<SetProfileScreen> {
         );
       });
     } else {
-      String? photoUrl = await _fireStoreService
-          .uploadImageToFirebase(_profileImage!);
+      String? photoUrl =
+          await _fireStoreService.uploadImageToFirebase(_profileImage!);
       _authService.updateUserProfileInfo(name, photoUrl ?? "", () {
+        Provider.of<LoadingProvider>(context, listen: false).isLoading = false;
+
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const HomeScreen()));
       }, () {
+        Provider.of<LoadingProvider>(context, listen: false).isLoading = false;
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             backgroundColor: Colors.black87,
