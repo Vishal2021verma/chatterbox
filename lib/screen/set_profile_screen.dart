@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:chatterbox/provider/loading_provider.dart';
-import 'package:chatterbox/screen/home_screen.dart';
+import 'package:chatterbox/screen/chat_room_screen.dart';
 import 'package:chatterbox/service/auth_service.dart';
 import 'package:chatterbox/service/fire_store_service.dart';
 import 'package:chatterbox/service/image_picker_service.dart';
@@ -35,7 +35,7 @@ class _SetProfileScreenState extends State<SetProfileScreen> {
         Provider.of<LoadingProvider>(context, listen: false).isLoading = false;
 
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const HomeScreen()));
+            MaterialPageRoute(builder: (context) => const ChatRoomScreen()));
       }, () {
         Provider.of<LoadingProvider>(context, listen: false).isLoading = false;
 
@@ -56,7 +56,7 @@ class _SetProfileScreenState extends State<SetProfileScreen> {
         Provider.of<LoadingProvider>(context, listen: false).isLoading = false;
 
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const HomeScreen()));
+            MaterialPageRoute(builder: (context) => const ChatRoomScreen()));
       }, () {
         Provider.of<LoadingProvider>(context, listen: false).isLoading = false;
 

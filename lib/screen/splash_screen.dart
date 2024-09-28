@@ -1,4 +1,4 @@
-import 'package:chatterbox/screen/home_screen.dart';
+import 'package:chatterbox/screen/chat_room_screen.dart';
 import 'package:chatterbox/screen/intro_screen.dart';
 import 'package:chatterbox/screen/set_profile_screen.dart';
 import 'package:chatterbox/service/auth_service.dart';
@@ -20,13 +20,14 @@ class _SplashScreenState extends State<SplashScreen> {
         _authService.getUser()!.displayName!.isEmpty) {
       Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const SetProfileScreen()));
-    } else if (_authService.isUserLogedIn() && _authService.getUser()!.photoURL == null) {
+    } else if (_authService.isUserLogedIn() &&
+        _authService.getUser()!.photoURL == null) {
       Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const SetProfileScreen()));
     } else if (_authService.isUserLogedIn() &&
         _authService.getUser()!.displayName!.isNotEmpty) {
       Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()));
+          MaterialPageRoute(builder: (context) => const ChatRoomScreen()));
     } else if (!_authService.isUserLogedIn()) {
       Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const IntroScreen()));
