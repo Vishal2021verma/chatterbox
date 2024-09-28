@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
@@ -24,5 +25,14 @@ class FireStoreService {
       log(e.toString());
     }
     return null;
+  }
+  ///Saves user data on Cloud Firebase Firestore data
+  Future saveUserOnCloud(User user) async {
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+      "displayName": user.displayName ?? "",
+      "uid": user.uid,
+      "photoUrl": user.photoURL ?? "",
+      "phoneNumber": user.phoneNumber ?? ""
+    });
   }
 }

@@ -1,11 +1,12 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:chatterbox/provider/loading_provider.dart';
-import 'package:chatterbox/screen/chat_room_screen.dart';
+import 'package:chatterbox/screen/home_screen.dart';
 import 'package:chatterbox/service/auth_service.dart';
 import 'package:chatterbox/service/fire_store_service.dart';
 import 'package:chatterbox/service/image_picker_service.dart';
 import 'package:chatterbox/utils/color_resource.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -31,11 +32,12 @@ class _SetProfileScreenState extends State<SetProfileScreen> {
     Provider.of<LoadingProvider>(context, listen: false).isLoading = true;
 
     if (_profileImage == null) {
-      _authService.updateUserProfileName(name, () {
+      _authService.updateUserProfileName(name, (User user) async {
+        await _fireStoreService.saveUserOnCloud(user);
         Provider.of<LoadingProvider>(context, listen: false).isLoading = false;
 
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const ChatRoomScreen()));
+            MaterialPageRoute(builder: (context) => const HomeScreen()));
       }, () {
         Provider.of<LoadingProvider>(context, listen: false).isLoading = false;
 
@@ -52,14 +54,14 @@ class _SetProfileScreenState extends State<SetProfileScreen> {
     } else {
       String? photoUrl =
           await _fireStoreService.uploadImageToFirebase(_profileImage!);
-      _authService.updateUserProfileInfo(name, photoUrl ?? "", () {
+      _authService.updateUserProfileInfo(name, photoUrl ?? "",
+          (User user) async {
+        _fireStoreService.saveUserOnCloud(user);
         Provider.of<LoadingProvider>(context, listen: false).isLoading = false;
-
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const ChatRoomScreen()));
+            MaterialPageRoute(builder: (context) => const HomeScreen()));
       }, () {
         Provider.of<LoadingProvider>(context, listen: false).isLoading = false;
-
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             backgroundColor: Colors.black87,

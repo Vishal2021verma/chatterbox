@@ -6,7 +6,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ChatRoomScreen extends StatefulWidget {
-  const ChatRoomScreen({super.key});
+  final String chatRoomId;
+  final String name;
+  const ChatRoomScreen(
+      {super.key, required this.chatRoomId, required this.name});
 
   @override
   State<ChatRoomScreen> createState() => _ChatRoomScreenState();
@@ -21,6 +24,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   void initState() {
     super.initState();
     user = _authService.user;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _messageService.createChatRoomIfNotExit(
+          'l5hGNJ4NE5QuJwwtfxlWXzXIK0B3', 'qMgAftUeGgXJjF1NJJtvz2GPUcr1');
+    });
   }
 
   /// Builds each message item
@@ -43,23 +50,24 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 244, 244, 244),
       appBar: AppBar(
         backgroundColor: ColorResource.primaryColor,
         title: Row(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10000),
-              child: Image.network(
-                _authService.user!.photoURL ?? "",
-                width: 36,
-                height: 36,
-              ),
-            ),
-            const SizedBox(
-              width: 16,
-            ),
+            // ClipRRect(
+            //   borderRadius: BorderRadius.circular(10000),
+            //   child: Image.network(
+            //     _authService.user!.photoURL ?? "",
+            //     width: 36,
+            //     height: 36,
+            //   ),
+            // ),
+            // const SizedBox(
+            //   width: 16,
+            // ),
             Text(
-              _authService.user!.displayName ?? "",
+              widget.name,
               style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w500,
@@ -68,39 +76,31 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           ],
         ),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
-            child: StreamBuilder(
-                stream: _messageService.getMessages(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const Center(
-                      child: SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                        ),
-                      ),
-                    );
-                  }
+      body: StreamBuilder(
+          stream: _messageService.getMessages(widget.chatRoomId),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(
+                child: SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                  ),
+                ),
+              );
+            }
 
-                  List<DocumentSnapshot> docs = snapshot.data!.docs;
-                  List<Widget> messages = docs.map((doc) {
-                    return _buildMessageItem(
-                        doc.data() as Map<String, dynamic>);
-                  }).toList();
+            List<DocumentSnapshot> docs = snapshot.data!.docs;
+            List<Widget> messages = docs.map((doc) {
+              return _buildMessageItem(doc.data() as Map<String, dynamic>);
+            }).toList();
 
-                  return ListView(
-                    reverse: true,
-                    children: messages,
-                  );
-                }),
-          )
-        ],
-      ),
+            return ListView(
+              reverse: true,
+              children: messages,
+            );
+          }),
       bottomNavigationBar: Container(
         color: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
@@ -112,8 +112,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 textInputAction: TextInputAction.send,
                 onEditingComplete: () {
                   if (_messageController.text.isNotEmpty) {
-                    _messageService.sendMessage(
-                        _messageController.text.trim(), user!.uid);
+                    _messageService.sendMessage(_messageController.text.trim(),
+                        user!.uid, widget.chatRoomId);
                     _messageController.clear();
                   }
                 },
@@ -127,8 +127,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             IconButton(
                 onPressed: () {
                   if (_messageController.text.isNotEmpty) {
-                    _messageService.sendMessage(
-                        _messageController.text.trim(), user!.uid);
+                    _messageService.sendMessage(_messageController.text.trim(),
+                        user!.uid, widget.chatRoomId);
                     _messageController.clear();
                   }
                 },
