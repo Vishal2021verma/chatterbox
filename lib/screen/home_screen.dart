@@ -1,4 +1,5 @@
 import 'package:chatterbox/screen/chat_room_screen.dart';
+import 'package:chatterbox/screen/users_screen.dart';
 import 'package:chatterbox/service/auth_service.dart';
 import 'package:chatterbox/utils/color_resource.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -40,14 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () {
                 Navigator.of(context).push(MaterialPageRoute(
                     builder: (context) => ChatRoomScreen(
-                          chatRoomId:
-                              'l5hGNJ4NE5QuJwwtfxlWXzXIK0B3_qMgAftUeGgXJjF1NJJtvz2GPUcr1',
-                          name: user!.displayName
-                                  .toString()
-                                  .toLowerCase()
-                                  .contains("vishal")
-                              ? "Anurag Verma"
-                              : "Vishal Verma",
+                           userId: '',
                         )));
               },
               child: Container(
@@ -77,6 +71,17 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             )
           ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: ColorResource.primaryColor,
+        onPressed: () {
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (context) => const UsersScreen()));
+        },
+        child: const Icon(
+          Icons.add_comment_rounded,
+          color: Colors.white,
         ),
       ),
     );

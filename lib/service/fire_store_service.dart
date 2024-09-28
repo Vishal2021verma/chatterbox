@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -26,6 +27,7 @@ class FireStoreService {
     }
     return null;
   }
+
   ///Saves user data on Cloud Firebase Firestore data
   Future saveUserOnCloud(User user) async {
     await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
@@ -34,5 +36,26 @@ class FireStoreService {
       "photoUrl": user.photoURL ?? "",
       "phoneNumber": user.phoneNumber ?? ""
     });
+  }
+
+  Future getAllUserOnChatterBox(callBack) async {
+    try {
+      QuerySnapshot usersSnapshot =
+          await FirebaseFirestore.instance.collection('users').get();
+      callBack(true, usersSnapshot.docs);
+    } catch (e) {
+      callBack(false, null);
+
+    }
+  }
+  Future getUserOnChatterBox(String uid, callBack) async {
+    try {
+     DocumentSnapshot userDoc = 
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      callBack(true, userDoc.data() as Map<String, dynamic>);
+    } catch (e) {
+      callBack(false, null);
+
+    }
   }
 }
