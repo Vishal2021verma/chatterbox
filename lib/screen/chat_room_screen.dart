@@ -34,6 +34,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     user = _authService.user;
     chatRoomId = GetChatRoomId.getChatRoomId(user!.uid, widget.userId);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _messageService.updateMyChats(user!.uid, widget.userId, "");
       _fireStoreService.getUserOnChatterBox(widget.userId,
           (bool status, Map<String, dynamic>? data) {
         if (status) {
@@ -41,6 +42,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           setState(() {});
         }
       });
+
       _messageService.createChatRoomIfNotExit(user!.uid, widget.userId);
     });
   }
@@ -138,6 +140,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   if (_messageController.text.isNotEmpty) {
                     _messageService.sendMessage(
                         _messageController.text.trim(), user!.uid, chatRoomId);
+                    _messageService.updateMyChats(user!.uid, widget.userId,
+                        _messageController.text.trim());
                     _messageController.clear();
                   }
                 },
@@ -153,6 +157,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   if (_messageController.text.isNotEmpty) {
                     _messageService.sendMessage(
                         _messageController.text.trim(), user!.uid, chatRoomId);
+
+                    _messageService.updateMyChats(user!.uid, widget.userId,
+                        _messageController.text.trim());
                     _messageController.clear();
                   }
                 },

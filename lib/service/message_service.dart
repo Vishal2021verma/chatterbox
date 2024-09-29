@@ -46,4 +46,46 @@ class MessageService {
       });
     }
   }
+
+  Future<void> updateMyChats(
+      String currentUserID, String otherUserID, String lastMessage) async {
+    try {
+      String chatRoomId =
+          GetChatRoomId.getChatRoomId(currentUserID, currentUserID);
+      await FirebaseFirestore.instance
+          .collection('myChats')
+          .doc(currentUserID)
+          .collection("chats")
+          .doc(chatRoomId)
+          .set({
+        'chatroomID': chatRoomId,
+        'otherUserID': otherUserID,
+        'lastMessage': lastMessage,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      await FirebaseFirestore.instance
+          .collection('myChats')
+          .doc(otherUserID)
+          .collection('chats')
+          .doc(chatRoomId)
+          .set({
+        'chatroomID': chatRoomId,
+        'otherUserID': currentUserID,
+        'lastMessage': lastMessage,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {}
+  }
+
+  Stream<QuerySnapshot> getMyChats(String currentUserId)  {
+     return FirebaseFirestore.instance
+          .collection("myChats")
+          .doc(currentUserId)
+          .collection('chats')
+          .orderBy('timestamp', descending: true).snapshots();
+
+      // callBack(true, docs.data as Map<String, dynamic>);
+  
+  }
 }
