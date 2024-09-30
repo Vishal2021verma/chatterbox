@@ -34,7 +34,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     user = _authService.user;
     chatRoomId = GetChatRoomId.getChatRoomId(user!.uid, widget.userId);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _messageService.updateMyChats(user!.uid, widget.userId, "");
+      // _messageService.updateMyChats(user!.uid, widget.userId, "");
       _fireStoreService.getUserOnChatterBox(widget.userId,
           (bool status, Map<String, dynamic>? data) {
         if (status) {

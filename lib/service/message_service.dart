@@ -44,6 +44,8 @@ class MessageService {
         "lastMessage": "",
         "timeStamp": FieldValue.serverTimestamp()
       });
+
+      updateMyChats(userOneId, userTwoId, "");
     }
   }
 
@@ -51,7 +53,7 @@ class MessageService {
       String currentUserID, String otherUserID, String lastMessage) async {
     try {
       String chatRoomId =
-          GetChatRoomId.getChatRoomId(currentUserID, currentUserID);
+          GetChatRoomId.getChatRoomId(currentUserID, otherUserID);
       await FirebaseFirestore.instance
           .collection('myChats')
           .doc(currentUserID)
@@ -78,14 +80,14 @@ class MessageService {
     } catch (e) {}
   }
 
-  Stream<QuerySnapshot> getMyChats(String currentUserId)  {
-     return FirebaseFirestore.instance
-          .collection("myChats")
-          .doc(currentUserId)
-          .collection('chats')
-          .orderBy('timestamp', descending: true).snapshots();
+  Stream<QuerySnapshot> getMyChats(String currentUserId) {
+    return FirebaseFirestore.instance
+        .collection("myChats")
+        .doc(currentUserId)
+        .collection('chats')
+        .orderBy('timestamp', descending: true)
+        .snapshots();
 
-      // callBack(true, docs.data as Map<String, dynamic>);
-  
+    // callBack(true, docs.data as Map<String, dynamic>);
   }
 }

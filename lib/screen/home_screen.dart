@@ -1,6 +1,5 @@
-import 'dart:convert';
 import 'dart:developer';
-
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chatterbox/screen/chat_room_screen.dart';
 import 'package:chatterbox/screen/users_screen.dart';
 import 'package:chatterbox/service/auth_service.dart';
@@ -10,6 +9,7 @@ import 'package:chatterbox/utils/color_resource.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -58,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
           "ChatterBox",
           style: TextStyle(
               color: ColorResource.primaryColor,
-              fontSize: 20,
+              fontSize: 24,
               fontWeight: FontWeight.w600),
         ),
       ),
@@ -104,42 +104,116 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.white,
                   child: Row(
                     children: [
-                      Container(
-                        height: 36,
-                        width: 36,
-                        decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Color.fromARGB(115, 96, 125, 139)),
+                      SizedBox(
+                        height: 50,
+                        width: 50,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10000),
+                          child: CachedNetworkImage(
+                            imageUrl: chatterUserData != null
+                                ? chatterUserData['photoUrl'] ?? ""
+                                : "",
+                            errorWidget: (context, url, error) => Container(
+                              color: Colors.blueGrey,
+                            ),
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           children: [
-                            Text(
-                              (() {
-                                try {
-                                  return chatterUserData!['displayName'];
-                                } catch (e) {
-                                  return "";
-                                }
-                              }()),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w500),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    (() {
+                                      try {
+                                        return chatterUserData!['displayName'];
+                                      } catch (e) {
+                                        return "";
+                                      }
+                                    }()),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                        fontSize: 18,
+                                        height: 1.6,
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w500),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 8,
+                                ),
+                                Text(
+                                  (() {
+                                    try {
+                                      DateTime currentDate = DateTime.now();
+                                      Timestamp timestamp =
+                                          userData['timestamp'];
+                                      DateTime dateTime = timestamp.toDate();
+                                      String dateString = '';
+                                      if (dateTime.day == DateTime.now().day) {
+                                        dateString = "Today";
+                                      } else if (DateTime(dateTime.year,
+                                              dateTime.month, dateTime.day)
+                                          .isBefore(DateTime(
+                                              currentDate.year,
+                                              currentDate.month,
+                                              currentDate.day))) {
+                                        dateString = 'Yesterday';
+                                      } else {
+                                        dateString = DateFormat('dd/MM/yy')
+                                            .format(dateTime);
+                                      }
+                                      return dateString;
+                                    } catch (e) {
+                                      return "";
+                                    }
+                                  }()),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.black54,
+                                      fontWeight: FontWeight.w400),
+                                ),
+                              ],
                             ),
-                            Text(
-                              (() {
-                                try {
-                                  return userData['lastMessage'];
-                                } catch (e) {
-                                  return "";
-                                }
-                              }()),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w500),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                const Icon(
+                                  Icons.done_all_rounded,
+                                  size: 16,
+                                  color: Colors.blueAccent,
+                                ),
+                                const SizedBox(
+                                  width: 4,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    (() {
+                                      try {
+                                        return userData['lastMessage'].isEmpty
+                                            ? 'Say Hi to ${chatterUserData!['displayName']}'
+                                            : userData['lastMessage'];
+                                      } catch (e) {
+                                        return "";
+                                      }
+                                    }()),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                        color: Colors.black54,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w400),
+                                  ),
+                                ),
+
+                                //Add a widget for status and more
+                              ],
                             ),
                           ],
                         ),
