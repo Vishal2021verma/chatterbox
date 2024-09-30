@@ -4,9 +4,11 @@ import 'package:chatterbox/service/fire_store_service.dart';
 import 'package:chatterbox/service/message_service.dart';
 import 'package:chatterbox/utils/color_resource.dart';
 import 'package:chatterbox/utils/get_chat_room_id.dart';
+import 'package:chatterbox/utils/image_resource.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final String userId;
@@ -51,17 +53,80 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   Widget _buildMessageItem(Map<String, dynamic> message) {
     bool isMe = message['senderId'] == user!.uid;
     return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-        decoration: BoxDecoration(
-          color: isMe ? Colors.blue[100] : Colors.grey[300],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(message['text']),
-      ),
-    );
+        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+        child: isMe
+            ? Container(
+                padding: const EdgeInsets.only(
+                    top: 8, bottom: 4, right: 14, left: 14),
+                margin: EdgeInsets.only(bottom: 5, right: 16, left: 60),
+                decoration: BoxDecoration(
+                  color: isMe ? const Color(0xffe9f8df) : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      message['text'],
+                      textAlign: TextAlign.start,
+                    ),
+                    Text(
+                      (() {
+                        try {
+                          DateTime currentDate = DateTime.now();
+                          Timestamp timestamp = message['timeStamp'];
+                          DateTime dateTime = timestamp.toDate();
+                          String dateString = '';
+
+                          dateString = DateFormat('h:m a').format(dateTime);
+
+                          return dateString;
+                        } catch (e) {
+                          return "";
+                        }
+                      }()),
+                      style:
+                          const TextStyle(color: Colors.black45, fontSize: 10),
+                    ),
+                  ],
+                ),
+              )
+            : Container(
+                padding: const EdgeInsets.only(
+                    top: 8, bottom: 4, right: 14, left: 14),
+                margin: const EdgeInsets.only(bottom: 5, right: 60, left: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      message['text'],
+                      textAlign: TextAlign.start,
+                    ),
+                    Text(
+                      (() {
+                        try {
+                          DateTime currentDate = DateTime.now();
+                          Timestamp timestamp = message['timeStamp'];
+                          DateTime dateTime = timestamp.toDate();
+                          String dateString = '';
+
+                          dateString = DateFormat('h:m a').format(dateTime);
+
+                          return dateString;
+                        } catch (e) {
+                          return "";
+                        }
+                      }()),
+                      style:
+                          const TextStyle(color: Colors.black45, fontSize: 10),
+                    ),
+                  ],
+                ),
+              ));
   }
 
   @override
@@ -74,22 +139,43 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         centerTitle: false,
         title: Row(
           children: [
-            SizedBox(
-              height: 36,
-              width: 36,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10000),
-                child: CachedNetworkImage(
-                  imageUrl:
-                      userTwoData != null ? userTwoData!['photoUrl'] ?? "" : "",
-                  errorWidget: (context, url, error) => Container(
-                    color: Colors.blueGrey,
-                  ),
+            InkWell(
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              borderRadius: BorderRadius.circular(1000),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.arrow_back_rounded,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(
+                      width: 4,
+                    ),
+                    SizedBox(
+                      height: 36,
+                      width: 36,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10000),
+                        child: CachedNetworkImage(
+                          imageUrl: userTwoData != null
+                              ? userTwoData!['photoUrl'] ?? ""
+                              : "",
+                          errorWidget: (context, url, error) => Container(
+                            color: Colors.blueGrey,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
             const SizedBox(
-              width: 18,
+              width: 14,
             ),
             Expanded(
                 child: Text(
@@ -98,44 +184,56 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.w500),
-            ))
+            )),
           ],
         ),
       ),
-      body: StreamBuilder(
-          stream: _messageService.getMessages(chatRoomId),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(
-                child: SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 3,
-                  ),
+      body: Container(
+        decoration: const BoxDecoration(
+            image: DecorationImage(
+                image: AssetImage(
+                  ImageResource.chatBgImage,
                 ),
+                fit: BoxFit.cover)),
+        child: StreamBuilder(
+            stream: _messageService.getMessages(chatRoomId),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(
+                  child: SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                    ),
+                  ),
+                );
+              }
+
+              List<DocumentSnapshot> docs = snapshot.data!.docs;
+              List<Widget> messages = docs.map((doc) {
+                return _buildMessageItem(doc.data() as Map<String, dynamic>);
+              }).toList();
+
+              return ListView(
+                reverse: true,
+                children: messages,
               );
-            }
-
-            List<DocumentSnapshot> docs = snapshot.data!.docs;
-            List<Widget> messages = docs.map((doc) {
-              return _buildMessageItem(doc.data() as Map<String, dynamic>);
-            }).toList();
-
-            return ListView(
-              reverse: true,
-              children: messages,
-            );
-          }),
+            }),
+      ),
       bottomNavigationBar: Container(
-        color: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+        decoration: BoxDecoration(
+            image: DecorationImage(
+                image: AssetImage(ImageResource.chatBgImage),
+                fit: BoxFit.cover)),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Expanded(
               child: TextField(
                 controller: _messageController,
-                textInputAction: TextInputAction.send,
+                textInputAction: TextInputAction.newline,
                 onEditingComplete: () {
                   if (_messageController.text.isNotEmpty) {
                     _messageService.sendMessage(
@@ -145,28 +243,59 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     _messageController.clear();
                   }
                 },
-                keyboardType: TextInputType.text,
-                decoration: const InputDecoration(hintText: "Type a message"),
+                minLines: 1,
+                maxLines: 6,
+                keyboardType: TextInputType.multiline,
+                decoration: InputDecoration(
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                    fillColor: Colors.white,
+                    filled: true,
+                    border: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(30), // Rounded corners
+                      borderSide: BorderSide.none, // No visible border
+                    ),
+                    hintText: "Message",
+                    hintStyle: const TextStyle(color: Colors.black54)),
               ),
             ),
             const SizedBox(
-              width: 18,
+              width: 4,
             ),
-            IconButton(
-                onPressed: () {
-                  if (_messageController.text.isNotEmpty) {
-                    _messageService.sendMessage(
-                        _messageController.text.trim(), user!.uid, chatRoomId);
-
-                    _messageService.updateMyChats(user!.uid, widget.userId,
-                        _messageController.text.trim());
-                    _messageController.clear();
-                  }
-                },
-                icon: const Icon(
-                  Icons.send_rounded,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(1000),
+              child: SizedBox(
+                height: 48,
+                width: 48,
+                child: Container(
                   color: ColorResource.primaryColor,
-                ))
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        if (_messageController.text.isNotEmpty) {
+                          _messageService.sendMessage(
+                              _messageController.text.trim(),
+                              user!.uid,
+                              chatRoomId);
+                          _messageService.updateMyChats(user!.uid,
+                              widget.userId, _messageController.text.trim());
+                          _messageController.clear();
+                        }
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.all(2),
+                        child: Icon(
+                          Icons.send_rounded,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            )
           ],
         ),
       ),
