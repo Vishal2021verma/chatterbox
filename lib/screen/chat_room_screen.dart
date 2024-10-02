@@ -44,7 +44,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           setState(() {});
         }
       });
-
       _messageService.createChatRoomIfNotExit(user!.uid, widget.userId);
     });
   }
@@ -58,7 +57,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             ? Container(
                 padding: const EdgeInsets.only(
                     top: 8, bottom: 4, right: 14, left: 14),
-                margin: EdgeInsets.only(bottom: 5, right: 16, left: 60),
+                margin: const EdgeInsets.only(bottom: 5, right: 16, left: 60),
                 decoration: BoxDecoration(
                   color: isMe ? const Color(0xffe9f8df) : Colors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -73,13 +72,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     Text(
                       (() {
                         try {
-                          DateTime currentDate = DateTime.now();
                           Timestamp timestamp = message['timeStamp'];
                           DateTime dateTime = timestamp.toDate();
                           String dateString = '';
-
                           dateString = DateFormat('h:m a').format(dateTime);
-
                           return dateString;
                         } catch (e) {
                           return "";
@@ -109,13 +105,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     Text(
                       (() {
                         try {
-                          DateTime currentDate = DateTime.now();
                           Timestamp timestamp = message['timeStamp'];
                           DateTime dateTime = timestamp.toDate();
                           String dateString = '';
-
                           dateString = DateFormat('h:m a').format(dateTime);
-
                           return dateString;
                         } catch (e) {
                           return "";
@@ -127,6 +120,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   ],
                 ),
               ));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _messageService.updateTypingStatus(user!.uid, chatRoomId, false);
   }
 
   @override
@@ -178,13 +177,46 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               width: 14,
             ),
             Expanded(
-                child: Text(
-              userTwoData != null ? userTwoData!['displayName'] ?? "" : "",
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500),
-            )),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    userTwoData != null
+                        ? userTwoData!['displayName'] ?? ""
+                        : "",
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500),
+                  ),
+                  StreamBuilder(
+                      stream: _messageService.getTypingStatus(
+                          userTwoData!['uid'], chatRoomId),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return const SizedBox.shrink();
+                        } else if (snapshot.hasData) {
+                          List<DocumentSnapshot> data = snapshot.data!.docs;
+                          List<Widget> typinStatusWidget = data.map((doc) {
+                            Map<String, dynamic> data =
+                                doc.data() as Map<String, dynamic>;
+
+                            return !data["isTyping"]
+                                ? const SizedBox.shrink()
+                                : const Text('typing...',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                    ));
+                          }).toList();
+                          return typinStatusWidget.first;
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      })
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -223,7 +255,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
             image: DecorationImage(
                 image: AssetImage(ImageResource.chatBgImage),
                 fit: BoxFit.cover)),
@@ -240,8 +272,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         _messageController.text.trim(), user!.uid, chatRoomId);
                     _messageService.updateMyChats(user!.uid, widget.userId,
                         _messageController.text.trim());
+
                     _messageController.clear();
+                    _messageService.updateTypingStatus(
+                        user!.uid, chatRoomId, false);
                   }
+                },
+                onChanged: (value) {
+                  //Update typing status
+                  _messageService.updateTypingStatus(
+                      user!.uid, chatRoomId, value.isEmpty ? false : true);
                 },
                 minLines: 1,
                 maxLines: 6,
@@ -282,6 +322,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                           _messageService.updateMyChats(user!.uid,
                               widget.userId, _messageController.text.trim());
                           _messageController.clear();
+                          _messageService.updateTypingStatus(
+                              user!.uid, chatRoomId, false);
                         }
                       },
                       child: const Padding(

@@ -33,7 +33,7 @@ class FireStoreService {
       "displayName": user.displayName ?? "",
       "uid": user.uid,
       "photoUrl": user.photoURL ?? "",
-      "phoneNumber": user.phoneNumber ?? ""
+      "phoneNumber": user.phoneNumber ?? "",
     });
   }
 
@@ -44,17 +44,20 @@ class FireStoreService {
       callBack(true, usersSnapshot.docs);
     } catch (e) {
       callBack(false, null);
-
     }
   }
+
   Future getUserOnChatterBox(String uid, callBack) async {
     try {
-     DocumentSnapshot userDoc = 
+      DocumentSnapshot userDoc =
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
       callBack(true, userDoc.data() as Map<String, dynamic>);
     } catch (e) {
       callBack(false, null);
-
     }
   }
+
+  
+
+
 }

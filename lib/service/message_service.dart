@@ -90,4 +90,28 @@ class MessageService {
 
     // callBack(true, docs.data as Map<String, dynamic>);
   }
+
+  ///Update current user typing status
+  Future updateTypingStatus(
+      String currentUserId, String chatRoomId, bool typingStatus) async {
+    await FirebaseFirestore.instance
+        .collection("myChats")
+        .doc(currentUserId)
+        .collection("chats")
+        .doc(chatRoomId)
+        .collection("typingStatus")
+        .doc(currentUserId)
+        .set({"isTyping": typingStatus});
+  }
+
+  ///Get typing status of user
+  Stream<QuerySnapshot> getTypingStatus(String userId, String chatRoomId) {
+    return FirebaseFirestore.instance
+        .collection("myChats")
+        .doc(userId)
+        .collection("chats")
+        .doc(chatRoomId)
+        .collection('typingStatus')
+        .snapshots();
+  }
 }
