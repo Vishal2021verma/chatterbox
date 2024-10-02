@@ -5,6 +5,7 @@ import 'package:chatterbox/service/message_service.dart';
 import 'package:chatterbox/utils/color_resource.dart';
 import 'package:chatterbox/utils/get_chat_room_id.dart';
 import 'package:chatterbox/utils/image_resource.dart';
+import 'package:chatterbox/utils/messsage_iteam_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -69,20 +70,44 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       message['text'],
                       textAlign: TextAlign.start,
                     ),
-                    Text(
-                      (() {
-                        try {
-                          Timestamp timestamp = message['timeStamp'];
-                          DateTime dateTime = timestamp.toDate();
-                          String dateString = '';
-                          dateString = DateFormat('h:m a').format(dateTime);
-                          return dateString;
-                        } catch (e) {
-                          return "";
-                        }
-                      }()),
-                      style:
-                          const TextStyle(color: Colors.black45, fontSize: 10),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          (() {
+                            try {
+                              Timestamp timestamp = message['timeStamp'];
+                              DateTime dateTime = timestamp.toDate();
+                              String dateString = '';
+                              dateString = DateFormat('h:m a').format(dateTime);
+                              return dateString;
+                            } catch (e) {
+                              return "";
+                            }
+                          }()),
+                          style: const TextStyle(
+                              color: Colors.black45, fontSize: 11),
+                        ),
+                        message['isRead'] != null
+                            ? message['isRead']
+                                ? const Padding(
+                                    padding: EdgeInsets.only(left: 4),
+                                    child: Icon(
+                                      Icons.done_all_rounded,
+                                      color: Colors.grey,
+                                      size: 14,
+                                    ),
+                                  )
+                                : const Padding(
+                                    padding: EdgeInsets.only(left: 4),
+                                    child: Icon(
+                                      Icons.done_rounded,
+                                      color: Colors.grey,
+                                      size: 14,
+                                    ),
+                                  )
+                            : const SizedBox.shrink()
+                      ],
                     ),
                   ],
                 ),
@@ -115,7 +140,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         }
                       }()),
                       style:
-                          const TextStyle(color: Colors.black45, fontSize: 10),
+                          const TextStyle(color: Colors.black45, fontSize: 11),
                     ),
                   ],
                 ),
@@ -247,7 +272,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
               List<DocumentSnapshot> docs = snapshot.data!.docs;
               List<Widget> messages = docs.map((doc) {
-                return _buildMessageItem(doc.data() as Map<String, dynamic>);
+                // return _buildMessageItem(doc.data() as Map<String, dynamic>);
+                Map<String, dynamic> message =
+                    doc.data() as Map<String, dynamic>;
+                return MesssageIteamWidget(
+                  message: message,
+                  messageId: doc.id,
+                  chatRoomId: chatRoomId,
+                  isMe: message['senderId'] == user!.uid,
+                );
               }).toList();
 
               return ListView(
@@ -269,18 +302,18 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               child: TextField(
                 controller: _messageController,
                 textInputAction: TextInputAction.newline,
-                onEditingComplete: () {
-                  if (_messageController.text.isNotEmpty) {
-                    _messageService.sendMessage(
-                        _messageController.text.trim(), user!.uid, chatRoomId);
-                    _messageService.updateMyChats(user!.uid, widget.userId,
-                        _messageController.text.trim());
+                // onEditingComplete: () {
+                //   if (_messageController.text.isNotEmpty) {
+                //     _messageService.sendMessage(_messageController.text.trim(),
+                //         user!.uid, userTwoData!["uid"], chatRoomId);
+                //     _messageService.updateMyChats(user!.uid, widget.userId,
+                //         _messageController.text.trim());
 
-                    _messageController.clear();
-                    _messageService.updateTypingStatus(
-                        user!.uid, chatRoomId, false);
-                  }
-                },
+                //     _messageController.clear();
+                //     _messageService.updateTypingStatus(
+                //         user!.uid, chatRoomId, false);
+                //   }
+                // },
                 onChanged: (value) {
                   //Update typing status
                   _messageService.updateTypingStatus(
@@ -321,6 +354,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                           _messageService.sendMessage(
                               _messageController.text.trim(),
                               user!.uid,
+                              userTwoData!["uid"],
                               chatRoomId);
                           _messageService.updateMyChats(user!.uid,
                               widget.userId, _messageController.text.trim());

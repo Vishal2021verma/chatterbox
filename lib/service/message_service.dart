@@ -3,16 +3,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MessageService {
   ///Send a message
-  Future<void> sendMessage(
-      String messageText, String senderId, String chatRoomId) async {
+  Future<void> sendMessage(String messageText, String senderId,
+      String otherUserId, String chatRoomId) async {
     await FirebaseFirestore.instance
         .collection('chats')
         .doc(chatRoomId)
         .collection('messages')
         .add({
+      "otherUserId": otherUserId,
       "text": messageText,
       "senderId": senderId,
-      "timeStamp": FieldValue.serverTimestamp()
+      "timeStamp": FieldValue.serverTimestamp(),
+      "isRead": false
     });
   }
 
@@ -113,5 +115,15 @@ class MessageService {
         .doc(chatRoomId)
         .collection('typingStatus')
         .snapshots();
+  }
+
+  ///Update message's read status
+  Future updateMessageReadStatus(String chatRoomId, String messageId) async {
+    await FirebaseFirestore.instance
+        .collection('chats')
+        .doc(chatRoomId)
+        .collection('messages')
+        .doc(messageId)
+        .update({"isRead": true});
   }
 }
