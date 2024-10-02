@@ -191,7 +191,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   ),
                   StreamBuilder(
                       stream: _messageService.getTypingStatus(
-                          userTwoData!['uid'], chatRoomId),
+                          userTwoData != null ? userTwoData!['uid'] : "12345",
+                          chatRoomId),
                       builder: (context, snapshot) {
                         if (!snapshot.hasData) {
                           return const SizedBox.shrink();
@@ -209,7 +210,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                                       fontSize: 12,
                                     ));
                           }).toList();
-                          return typinStatusWidget.first;
+                          return typinStatusWidget.isNotEmpty
+                              ? typinStatusWidget.first
+                              : const SizedBox.shrink();
                         } else {
                           return const SizedBox.shrink();
                         }
