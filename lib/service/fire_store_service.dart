@@ -34,9 +34,11 @@ class FireStoreService {
       "uid": user.uid,
       "photoUrl": user.photoURL ?? "",
       "phoneNumber": user.phoneNumber ?? "",
-      "fcm": fcmToken
+      "fcm": fcmToken,
+      'isActive': false
     });
   }
+
   ///Updates the fcm token
   Future updateFcmToken(String userUid, String fcmToken) async {
     await FirebaseFirestore.instance
@@ -63,5 +65,12 @@ class FireStoreService {
     } catch (e) {
       callBack(false, null);
     }
+  }
+
+  Future updateUserStatus(String userUid, bool status) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userUid)
+        .update({"isActive": status});
   }
 }

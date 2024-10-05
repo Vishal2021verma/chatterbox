@@ -10,6 +10,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 class ChatRoomScreen extends StatefulWidget {
   final String userId;
   const ChatRoomScreen({
@@ -21,7 +22,8 @@ class ChatRoomScreen extends StatefulWidget {
   State<ChatRoomScreen> createState() => _ChatRoomScreenState();
 }
 
-class _ChatRoomScreenState extends State<ChatRoomScreen> {
+class _ChatRoomScreenState extends State<ChatRoomScreen>
+    with WidgetsBindingObserver {
   final TextEditingController _messageController = TextEditingController();
   final AuthService _authService = AuthService();
   final MessageService _messageService = MessageService();
@@ -33,10 +35,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     user = _authService.user;
     chatRoomId = GetChatRoomId.getChatRoomId(user!.uid, widget.userId);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // _messageService.updateMyChats(user!.uid, widget.userId, "");
+      _fireStoreService.updateUserStatus(user!.uid, true);
       _fireStoreService.getUserOnChatterBox(widget.userId,
           (bool status, Map<String, dynamic>? data) {
         if (status) {
@@ -46,6 +50,23 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       });
       _messageService.createChatRoomIfNotExit(user!.uid, widget.userId);
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _fireStoreService.updateUserStatus(user!.uid, true);
+    } else {
+      _fireStoreService.updateUserStatus(user!.uid, false);
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _messageService.updateTypingStatus(user!.uid, chatRoomId, false);
+    _fireStoreService.updateUserStatus(user!.uid, false);
+    WidgetsBinding.instance.removeObserver(this);
   }
 
   /// Builds each message item
@@ -144,12 +165,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   ],
                 ),
               ));
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _messageService.updateTypingStatus(user!.uid, chatRoomId, false);
   }
 
   @override
