@@ -1,9 +1,11 @@
-import 'package:chatterbox/screen/chat_room_screen.dart';
+import 'dart:developer';
 import 'package:chatterbox/screen/home_screen.dart';
 import 'package:chatterbox/screen/intro_screen.dart';
 import 'package:chatterbox/screen/set_profile_screen.dart';
 import 'package:chatterbox/service/auth_service.dart';
+import 'package:chatterbox/service/notification_service.dart';
 import 'package:chatterbox/utils/color_resource.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -15,6 +17,7 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   final AuthService _authService = AuthService();
+  NotificationServices notificationServices = NotificationServices();
 
   navigate() {
     if (_authService.isUserLogedIn() &&
@@ -41,6 +44,17 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    notificationServices.requestNotificationPermission();
+    notificationServices.forgroundMessage();
+    notificationServices.firebaseInit(context);
+    notificationServices.setupInteractMessage();
+    notificationServices.isTokenRefresh();
+    notificationServices.getDeviceToken().then((value) {
+      if (kDebugMode) {
+        log('device token');
+        log(value);
+      }
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       navigate();
     });
