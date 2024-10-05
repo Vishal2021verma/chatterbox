@@ -28,13 +28,21 @@ class FireStoreService {
   }
 
   ///Saves user data on Cloud Firebase Firestore data
-  Future saveUserOnCloud(User user) async {
+  Future saveUserOnCloud(User user, String fcmToken) async {
     await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
       "displayName": user.displayName ?? "",
       "uid": user.uid,
       "photoUrl": user.photoURL ?? "",
       "phoneNumber": user.phoneNumber ?? "",
+      "fcm": fcmToken
     });
+  }
+  ///Updates the fcm token
+  Future updateFcmToken(String userUid, String fcmToken) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userUid)
+        .update({"fcmToken": fcmToken});
   }
 
   Future getAllUserOnChatterBox(callBack) async {
@@ -56,8 +64,4 @@ class FireStoreService {
       callBack(false, null);
     }
   }
-
-  
-
-
 }

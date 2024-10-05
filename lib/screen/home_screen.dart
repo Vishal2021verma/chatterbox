@@ -8,6 +8,7 @@ import 'package:chatterbox/service/message_service.dart';
 import 'package:chatterbox/utils/color_resource.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -17,33 +18,45 @@ class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
+
 class _HomeScreenState extends State<HomeScreen> {
   final AuthService _authService = AuthService();
   final MessageService _messageService = MessageService();
   final FireStoreService _fireStoreService = FireStoreService();
   List<DocumentSnapshot> chatters = [];
   User? user;
+
   @override
   void initState() {
     super.initState();
     user = _authService.user;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _fireStoreService.getAllUserOnChatterBox(
-            (bool status, List<DocumentSnapshot> snapshot) {
-          if (status) {
-            chatters = snapshot;
-            setState(() {});
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text(
-                'Something went wrong!',
-                style: TextStyle(color: Colors.white),
-              ),
-              backgroundColor: Colors.black87,
-            ));
+      _fireStoreService.getAllUserOnChatterBox(
+          (bool status, List<DocumentSnapshot> snapshot) {
+        if (status) {
+          chatters = snapshot;
+          setState(() {});
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text(
+              'Something went wrong!',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.black87,
+          ));
+        }
+      });
+
+      _fireStoreService.getUserOnChatterBox(user!.uid,
+          (bool status, Map<String, dynamic>? data) async {
+        if (status) {
+          if (data!['fcmToken'] == null) {
+            String? fcmToken = await FirebaseMessaging.instance.getToken();
+            _fireStoreService.updateFcmToken(user!.uid, fcmToken ?? "");
+            log("Firebase Token updated");
           }
-        });
+        }
       });
     });
   }

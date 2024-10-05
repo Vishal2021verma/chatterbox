@@ -5,6 +5,7 @@ import 'package:chatterbox/screen/home_screen.dart';
 import 'package:chatterbox/service/auth_service.dart';
 import 'package:chatterbox/service/fire_store_service.dart';
 import 'package:chatterbox/service/image_picker_service.dart';
+import 'package:chatterbox/service/notification_service.dart';
 import 'package:chatterbox/utils/color_resource.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -24,16 +25,19 @@ class _SetProfileScreenState extends State<SetProfileScreen> {
   final ImagePickerService _imagePickerService = ImagePickerService();
   final FireStoreService _fireStoreService = FireStoreService();
   final AuthService _authService = AuthService();
+  final NotificationServices notificationServices = NotificationServices();
+
   XFile? _profileImage;
 
   uploadProfileInfo(String name) async {
     SystemChannels.textInput.invokeMethod('TextInput.hide');
 
     Provider.of<LoadingProvider>(context, listen: false).isLoading = true;
+    String fcmToken = await notificationServices.getDeviceToken();
 
     if (_profileImage == null) {
       _authService.updateUserProfileName(name, (User user) async {
-        await _fireStoreService.saveUserOnCloud(user);
+        await _fireStoreService.saveUserOnCloud(user, fcmToken);
         Provider.of<LoadingProvider>(context, listen: false).isLoading = false;
 
         Navigator.of(context).pushReplacement(
@@ -56,7 +60,7 @@ class _SetProfileScreenState extends State<SetProfileScreen> {
           await _fireStoreService.uploadImageToFirebase(_profileImage!);
       _authService.updateUserProfileInfo(name, photoUrl ?? "",
           (User user) async {
-        _fireStoreService.saveUserOnCloud(user);
+        _fireStoreService.saveUserOnCloud(user, fcmToken);
         Provider.of<LoadingProvider>(context, listen: false).isLoading = false;
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const HomeScreen()));
