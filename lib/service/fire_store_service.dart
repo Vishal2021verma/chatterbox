@@ -67,10 +67,22 @@ class FireStoreService {
     }
   }
 
+  /// Updates the user isActive status
   Future updateUserStatus(String userUid, bool status) async {
     await FirebaseFirestore.instance
         .collection('users')
         .doc(userUid)
         .update({"isActive": status});
+  }
+
+  /// Get the user isActive status
+  Future<bool> getUserStatus(String userId) async {
+    DocumentSnapshot documentSnapshot =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    if (documentSnapshot.exists) {
+      return documentSnapshot.get('isActive');
+    } else {
+      return true;
+    }
   }
 }

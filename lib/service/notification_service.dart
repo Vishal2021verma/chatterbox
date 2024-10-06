@@ -10,7 +10,6 @@ import 'package:http/http.dart' as http;
 // import 'package:uptourism_app/app.dart';
 // import 'package:uptourism_app/utils/common_functions.dart';
 
-
 class NotificationServices {
   // Base URL for images
   // final String baseUrl = AppConfig.instance.baseUrl;
@@ -77,7 +76,7 @@ class NotificationServices {
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       if (kDebugMode) {
-       log('user granted permission');
+        log('user granted permission');
       }
     } else if (settings.authorizationStatus ==
         AuthorizationStatus.provisional) {
@@ -98,8 +97,7 @@ class NotificationServices {
 
     if (notification == null || androidNotification == null) {
       if (kDebugMode) {
-      log(
-            'Notification or Android notification is null');
+        log('Notification or Android notification is null');
       }
       return;
     }
@@ -206,7 +204,7 @@ class NotificationServices {
 
   void handleMessage(Map<String, dynamic> messageData) {
     if (kDebugMode) {
-     log('Message data: $messageData');
+      log('Message data: $messageData');
     }
 
     String? messageType = messageData['type'];
@@ -265,5 +263,40 @@ class NotificationServices {
       default:
         break;
     }
+  }
+
+  String key =
+      "nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDVi9ZAhBWD2Nh0\n49oRkMMWUXE9RT6HucPM2AGdE+xdKBDVFDLJkjGCeJaIpqTio4VKO2eCFEvdhFr6\nwkDGXyD32N9Gq9Src4sXykVGAM+bqmfheNQOELQ9oNXcZmPlO8rQcOdSVKP3sWnG\nal5SEYpnuGSkSfDmQp3DW3ka2PpkAOmaEX8IHNM8knZGRmiIienO+4fXp65ebp2Z\nVIztaDP0pb6VDzv+cUmoeelNwg4967bvdK3nfLFdT+Ehlipd2EG7zOLQPwAnUQYY\nGZQboUH3No/q384/hY4uD+iYNifMk+tkqKvwy77Mg9qcB0Z68BJSt3v4/U/JA5ok\nZhjpj/KlAgMBAAECggEALxAUBoD1quqh/dTvjPp9/E+zqMC3gLsgm2cpp+Apsfgw\nCX3bmZAGKE6CQpiTcz19lTgVXlYxyB6w3F3uX6m8ftMFljIteyHKUFJsRPrNxm1e\nWpNCDN2Ck6h8KYhJUM6GKr0PRhZQUrj/alKr+eNSwPwi9hAzrtOUqGbjAFc8i8g+\nm4u7VURT6C/GSlWTazJPZsHDZJM+zPFJnTrCV/WvcZiFiGSrlB3OaxKjCUTvIiNB\nJwLgxvhhayPrFumCV1zzPYg1vX85jVkpQwVpRP4HtP2nfzKTNuuiHF8HEPzv0+i0\nqkBowfuhRZZ5oNoUQy60uCLL1ZuY0P8tfwkXQqSh4QKBgQDv6S8Q/gpBK6BR7aIu\nN+oe140nvGcl4pAnVjq3QYN7l4Zw2Gh+ftDAA4yWNDkhU59000uBvsmik0eoOiDp\nQgWlIcQMfTLEpUEXkEHV3SpCktOU/qy8MKoX2gNfF5PgT+BIg2G4mElb/1TnrdPt\nMjAybd3iMa0Ll9DfEAIXjNJ5FQKBgQDj3gWorhS2TZqVrE+m8SPBxDbMZUHWjAOj\nNeGBd/X+gJ/hwObLzkfKtASsoqiwYrxuBqSgI+S0kEfUmw5TQG+RHeCLkZso6f5N\nlR15V74+2nfMKO4pB1qP6cWh5kzQ9YJutZ78l0FOkL+MXQbL/+mOC9WNHcYJUcjG\nggyH7evXUQKBgDvqIV3+A7OY4JX1Yc5nGmoPbOoijCQS++tHBqzjiKGiCuo9sYL9\nysZZXI/ahPYEu0rixfWmHxch7wBdXADFA0HlN9/imH4xwxrOZRKzBC3SG1MXcy4g\nfSotwS/LZJvddubFIO+H4LJABwVBDS8snIrLk2E9BLljdb9vcQZOnfWtAoGBAMkO\ng+u7/iaE/tsFuRpSNvynhrp+tcL6s9L0nc9A69rt3ySwsnQtxQbEJEO3GiTYWe6z\nCdsLEKeJjve3AMLQXiCrPg+oIEHPhUUrR2Bj3UdUONP5YXruNCg7Wthpfmn51mac\n9nVleIg8C+drxa2GVquxIXJsTOq4MPGGmkvt0GShAoGBAIr2mRRNMTqNeDgIqO7n\nnSc5kYF3D3116zbiPjwNGMeHVTF7AJVUsAMb0HFTWa29Hec4MJ6HomXGQNrWGB8I\nXlBsQ5hwxyl5E700FThD/DnRZRwc2DqUN1YvyOYEd5aVNm7hR7nqxgJDtmyQ48bB\nsTrQ19/MhAY+xgWpxcHk2OjZ";
+
+  Future sendNotification(String fcmToken, String messageText, String senderId,
+      String otherUserId, String chatRoomId) async {
+    final serverKey =
+        '5655152e057da702dd62cccd64ec436a303721ec'; // Get from Firebase Console
+    const url = 'https://fcm.googleapis.com/fcm/send';
+
+    final responae = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization':
+            'key=\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDVi9ZAhBWD2Nh0\n49oRkMMWUXE9RT6HucPM2AGdE+xdKBDVFDLJkjGCeJaIpqTio4VKO2eCFEvdhFr6\nwkDGXyD32N9Gq9Src4sXykVGAM+bqmfheNQOELQ9oNXcZmPlO8rQcOdSVKP3sWnG\nal5SEYpnuGSkSfDmQp3DW3ka2PpkAOmaEX8IHNM8knZGRmiIienO+4fXp65ebp2Z\nVIztaDP0pb6VDzv+cUmoeelNwg4967bvdK3nfLFdT+Ehlipd2EG7zOLQPwAnUQYY\nGZQboUH3No/q384/hY4uD+iYNifMk+tkqKvwy77Mg9qcB0Z68BJSt3v4/U/JA5ok\nZhjpj/KlAgMBAAECggEALxAUBoD1quqh/dTvjPp9/E+zqMC3gLsgm2cpp+Apsfgw\nCX3bmZAGKE6CQpiTcz19lTgVXlYxyB6w3F3uX6m8ftMFljIteyHKUFJsRPrNxm1e\nWpNCDN2Ck6h8KYhJUM6GKr0PRhZQUrj/alKr+eNSwPwi9hAzrtOUqGbjAFc8i8g+\nm4u7VURT6C/GSlWTazJPZsHDZJM+zPFJnTrCV/WvcZiFiGSrlB3OaxKjCUTvIiNB\nJwLgxvhhayPrFumCV1zzPYg1vX85jVkpQwVpRP4HtP2nfzKTNuuiHF8HEPzv0+i0\nqkBowfuhRZZ5oNoUQy60uCLL1ZuY0P8tfwkXQqSh4QKBgQDv6S8Q/gpBK6BR7aIu\nN+oe140nvGcl4pAnVjq3QYN7l4Zw2Gh+ftDAA4yWNDkhU59000uBvsmik0eoOiDp\nQgWlIcQMfTLEpUEXkEHV3SpCktOU/qy8MKoX2gNfF5PgT+BIg2G4mElb/1TnrdPt\nMjAybd3iMa0Ll9DfEAIXjNJ5FQKBgQDj3gWorhS2TZqVrE+m8SPBxDbMZUHWjAOj\nNeGBd/X+gJ/hwObLzkfKtASsoqiwYrxuBqSgI+S0kEfUmw5TQG+RHeCLkZso6f5N\nlR15V74+2nfMKO4pB1qP6cWh5kzQ9YJutZ78l0FOkL+MXQbL/+mOC9WNHcYJUcjG\nggyH7evXUQKBgDvqIV3+A7OY4JX1Yc5nGmoPbOoijCQS++tHBqzjiKGiCuo9sYL9\nysZZXI/ahPYEu0rixfWmHxch7wBdXADFA0HlN9/imH4xwxrOZRKzBC3SG1MXcy4g\nfSotwS/LZJvddubFIO+H4LJABwVBDS8snIrLk2E9BLljdb9vcQZOnfWtAoGBAMkO\ng+u7/iaE/tsFuRpSNvynhrp+tcL6s9L0nc9A69rt3ySwsnQtxQbEJEO3GiTYWe6z\nCdsLEKeJjve3AMLQXiCrPg+oIEHPhUUrR2Bj3UdUONP5YXruNCg7Wthpfmn51mac\n9nVleIg8C+drxa2GVquxIXJsTOq4MPGGmkvt0GShAoGBAIr2mRRNMTqNeDgIqO7n\nnSc5kYF3D3116zbiPjwNGMeHVTF7AJVUsAMb0HFTWa29Hec4MJ6HomXGQNrWGB8I\nXlBsQ5hwxyl5E700FThD/DnRZRwc2DqUN1YvyOYEd5aVNm7hR7nqxgJDtmyQ48bB\nsTrQ19/MhAY+xgWpxcHk2OjZ\n',
+      },
+      body: jsonEncode({
+        "to": fcmToken,
+        "notification": {
+          "title": "New Message",
+          "body": messageText,
+          "sound": "default",
+        },
+        "data": {
+          "click_action": "FLUTTER_NOTIFICATION_CLICK",
+          "chatRoomId": chatRoomId,
+          "otherUserId": otherUserId,
+          "senderId": senderId,
+          "message": messageText,
+        },
+        "priority": "high",
+      }),
+    );
   }
 }

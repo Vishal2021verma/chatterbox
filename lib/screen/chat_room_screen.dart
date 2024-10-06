@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chatterbox/service/auth_service.dart';
 import 'package:chatterbox/service/fire_store_service.dart';
 import 'package:chatterbox/service/message_service.dart';
+import 'package:chatterbox/service/notification_service.dart';
 import 'package:chatterbox/utils/color_resource.dart';
 import 'package:chatterbox/utils/get_chat_room_id.dart';
 import 'package:chatterbox/utils/image_resource.dart';
@@ -28,6 +29,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   final AuthService _authService = AuthService();
   final MessageService _messageService = MessageService();
   final FireStoreService _fireStoreService = FireStoreService();
+  final NotificationServices _notificationServices = NotificationServices();
   User? user;
   String chatRoomId = '';
   Map<String, dynamic>? userTwoData;
@@ -67,104 +69,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
     _messageService.updateTypingStatus(user!.uid, chatRoomId, false);
     _fireStoreService.updateUserStatus(user!.uid, false);
     WidgetsBinding.instance.removeObserver(this);
-  }
-
-  /// Builds each message item
-  Widget _buildMessageItem(Map<String, dynamic> message) {
-    bool isMe = message['senderId'] == user!.uid;
-    return Align(
-        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-        child: isMe
-            ? Container(
-                padding: const EdgeInsets.only(
-                    top: 8, bottom: 4, right: 14, left: 14),
-                margin: const EdgeInsets.only(bottom: 5, right: 16, left: 60),
-                decoration: BoxDecoration(
-                  color: isMe ? const Color(0xffe9f8df) : Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      message['text'],
-                      textAlign: TextAlign.start,
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          (() {
-                            try {
-                              Timestamp timestamp = message['timeStamp'];
-                              DateTime dateTime = timestamp.toDate();
-                              String dateString = '';
-                              dateString = DateFormat('h:m a').format(dateTime);
-                              return dateString;
-                            } catch (e) {
-                              return "";
-                            }
-                          }()),
-                          style: const TextStyle(
-                              color: Colors.black45, fontSize: 11),
-                        ),
-                        message['isRead'] != null
-                            ? message['isRead']
-                                ? const Padding(
-                                    padding: EdgeInsets.only(left: 4),
-                                    child: Icon(
-                                      Icons.done_all_rounded,
-                                      color: Colors.grey,
-                                      size: 14,
-                                    ),
-                                  )
-                                : const Padding(
-                                    padding: EdgeInsets.only(left: 4),
-                                    child: Icon(
-                                      Icons.done_rounded,
-                                      color: Colors.grey,
-                                      size: 14,
-                                    ),
-                                  )
-                            : const SizedBox.shrink()
-                      ],
-                    ),
-                  ],
-                ),
-              )
-            : Container(
-                padding: const EdgeInsets.only(
-                    top: 8, bottom: 4, right: 14, left: 14),
-                margin: const EdgeInsets.only(bottom: 5, right: 60, left: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      message['text'],
-                      textAlign: TextAlign.start,
-                    ),
-                    Text(
-                      (() {
-                        try {
-                          Timestamp timestamp = message['timeStamp'];
-                          DateTime dateTime = timestamp.toDate();
-                          String dateString = '';
-                          dateString = DateFormat('h:m a').format(dateTime);
-                          return dateString;
-                        } catch (e) {
-                          return "";
-                        }
-                      }()),
-                      style:
-                          const TextStyle(color: Colors.black45, fontSize: 11),
-                    ),
-                  ],
-                ),
-              ));
   }
 
   @override
@@ -363,18 +267,37 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      onTap: () {
+                      onTap: () async {
                         if (_messageController.text.isNotEmpty) {
+                          //Send the message
                           _messageService.sendMessage(
                               _messageController.text.trim(),
                               user!.uid,
                               userTwoData!["uid"],
                               chatRoomId);
+
+                          //Update the mychats
                           _messageService.updateMyChats(user!.uid,
                               widget.userId, _messageController.text.trim());
+                          String messageText = _messageController.text.trim();
+
+                          //Clear the text field after sending ther message
                           _messageController.clear();
+
+                          //Update the typing status
                           _messageService.updateTypingStatus(
                               user!.uid, chatRoomId, false);
+                          bool otherUserStatus = await _fireStoreService
+                              .getUserStatus(userTwoData!['uid']);
+
+                          if (!otherUserStatus) {
+                            _notificationServices.sendNotification(
+                                userTwoData!['fcmToken'] ?? '',
+                                messageText,
+                                user!.uid,
+                                userTwoData!["uid"],
+                                chatRoomId);
+                          }
                         }
                       },
                       child: const Padding(
