@@ -5,8 +5,10 @@ import 'package:chatterbox/screen/set_profile_screen.dart';
 import 'package:chatterbox/service/auth_service.dart';
 import 'package:chatterbox/service/notification_service.dart';
 import 'package:chatterbox/utils/color_resource.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -19,7 +21,18 @@ class _SplashScreenState extends State<SplashScreen> {
   final AuthService _authService = AuthService();
   NotificationServices notificationServices = NotificationServices();
 
-  navigate() {
+  Future<bool> signOutFromGoogle() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      return true;
+    } on Exception catch (_) {
+      return false;
+    }
+  }
+
+  navigate() async {
+    await signOutFromGoogle();
+
     if (_authService.isUserLogedIn() &&
         _authService.getUser()!.displayName!.isEmpty) {
       Navigator.of(context).pushReplacement(
